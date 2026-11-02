@@ -1,13 +1,31 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ValoVault — tactical HUD direction, shared with the marketing site.
+   Two accents with a semantic split taken from the app's own state machine:
+   signal (mint) = assigned / confirmed, pulse (red) = primary / destructive. */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --void: #0a0e11;
+  --steel: #141b20;
+  --steel-2: #1b242a;
+  --line: #26323a;
+  --bone: #ede9e2;
+  --ash: #8494a0;
+  --pulse: #ff4655;
+  --signal: #4fe3c1;
+
+  --cut: 10px;
+
+  --background: var(--void);
+  --foreground: var(--bone);
+
+  /* Bootstrap draws most components from these — flattening them to 0
+     once here is what gives every card, input, modal and dropdown the
+     same hairline, no-radius language as the site. */
+  --bs-border-radius: 0;
+  --bs-border-radius-sm: 0;
+  --bs-border-radius-lg: 0;
+  --bs-border-radius-xl: 0;
+  --bs-border-radius-xxl: 0;
+  --bs-border-radius-pill: 0;
 }
 
 html,
@@ -21,6 +39,12 @@ div#__next > div {
 body {
   display: flex;
   flex-direction: column;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-plex-sans), "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 main {
@@ -34,15 +58,6 @@ main {
   overflow-y: auto;
 }
 
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 * {
   box-sizing: border-box;
   padding: 0;
@@ -54,25 +69,394 @@ a {
   text-decoration: none;
 }
 
-.list-group-item.active {
-  background-color: rgba(0, 123, 255, 0.5) !important; 
-  border-color: rgba(0, 123, 255, 0.5) !important;
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-chakra-petch), "Segoe UI", sans-serif;
+  font-weight: 700;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 2px solid var(--void);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--steel-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
+/* ========================================================================
+   Bootstrap retint — map the HUD palette onto Bootstrap's theme variables.
+   Most components (card, list-group, form-control, dropdown, modal) read
+   these at use-time, so this one block reskins the whole app's surfaces.
+   Component classes that bake literal colors (.btn-*, .list-group-item.active,
+   .dropdown-menu active state, .toast) are overridden individually below.
+   ======================================================================== */
+
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --bs-body-bg: var(--void);
+  --bs-body-color: var(--bone);
+  --bs-emphasis-color: var(--bone);
+  --bs-secondary-color: var(--ash);
+  --bs-tertiary-color: var(--ash);
+  --bs-border-color: var(--line);
+  --bs-border-color-translucent: var(--line);
+  --bs-tertiary-bg: var(--steel);
+  --bs-secondary-bg: var(--steel-2);
+  --bs-secondary-bg-subtle: var(--steel-2);
+  --bs-secondary-border-subtle: var(--line);
+  --bs-secondary-text-emphasis: var(--bone);
+  --bs-link-color: var(--signal);
+  --bs-link-color-rgb: 79, 227, 193;
+  --bs-link-hover-color: var(--bone);
+  --bs-link-hover-color-rgb: 237, 233, 226;
+
+  --bs-primary: var(--pulse);
+  --bs-primary-rgb: 255, 70, 85;
+  --bs-danger: var(--pulse);
+  --bs-danger-rgb: 255, 70, 85;
+  --bs-success: var(--signal);
+  --bs-success-rgb: 79, 227, 193;
+  --bs-info: var(--signal);
+  --bs-info-rgb: 79, 227, 193;
+  --bs-secondary: var(--ash);
+  --bs-secondary-rgb: 132, 148, 160;
+}
+
+[data-bs-theme="light"] {
+  --bs-body-bg: var(--bone);
+  --bs-body-color: var(--void);
+  --bs-emphasis-color: var(--void);
+  --bs-secondary-color: #5b6a74;
+  --bs-tertiary-color: #5b6a74;
+  --bs-border-color: #d7d1c4;
+  --bs-border-color-translucent: #d7d1c4;
+  --bs-tertiary-bg: #e8e3d7;
+  --bs-secondary-bg: #ddd7c9;
+  --bs-secondary-bg-subtle: #ddd7c9;
+  --bs-secondary-border-subtle: #d7d1c4;
+  --bs-secondary-text-emphasis: var(--void);
+  --bs-link-color: #0d7d67;
+  --bs-link-hover-color: var(--void);
+
+  --bs-primary: var(--pulse);
+  --bs-primary-rgb: 255, 70, 85;
+  --bs-danger: var(--pulse);
+  --bs-danger-rgb: 255, 70, 85;
+  --bs-success: #0d7d67;
+  --bs-success-rgb: 13, 125, 103;
+  --bs-info: #0d7d67;
+  --bs-info-rgb: 13, 125, 103;
+}
+
+/* ---------- Buttons: two accents, ghost for everything else ---------- */
+
+.btn {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Near-black on mint/red rather than white: higher contrast, reads as HUD. */
+.btn-primary {
+  --bs-btn-color: #12080a;
+  --bs-btn-bg: var(--pulse);
+  --bs-btn-border-color: var(--pulse);
+  --bs-btn-hover-color: #12080a;
+  --bs-btn-hover-bg: #ff6270;
+  --bs-btn-hover-border-color: #ff6270;
+  --bs-btn-active-color: #12080a;
+  --bs-btn-active-bg: #ff6270;
+  --bs-btn-active-border-color: #ff6270;
+  --bs-btn-disabled-bg: var(--pulse);
+  --bs-btn-disabled-border-color: var(--pulse);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+
+.btn-success {
+  --bs-btn-color: var(--void);
+  --bs-btn-bg: var(--signal);
+  --bs-btn-border-color: var(--signal);
+  --bs-btn-hover-color: var(--void);
+  --bs-btn-hover-bg: #79ead2;
+  --bs-btn-hover-border-color: #79ead2;
+  --bs-btn-active-color: var(--void);
+  --bs-btn-active-bg: #79ead2;
+  --bs-btn-active-border-color: #79ead2;
+  --bs-btn-disabled-bg: var(--signal);
+  --bs-btn-disabled-border-color: var(--signal);
+}
+
+.btn-secondary {
+  --bs-btn-color: var(--bone);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: var(--line);
+  --bs-btn-hover-color: var(--bone);
+  --bs-btn-hover-bg: var(--steel-2);
+  --bs-btn-hover-border-color: var(--line);
+  --bs-btn-active-color: var(--bone);
+  --bs-btn-active-bg: var(--steel-2);
+  --bs-btn-active-border-color: var(--line);
+  --bs-btn-disabled-color: var(--ash);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--line);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--ash);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: var(--line);
+  --bs-btn-hover-color: var(--bone);
+  --bs-btn-hover-bg: var(--steel-2);
+  --bs-btn-hover-border-color: var(--line);
+  --bs-btn-active-color: var(--bone);
+  --bs-btn-active-bg: var(--steel-2);
+  --bs-btn-active-border-color: var(--line);
+}
+
+.btn-info {
+  --bs-btn-color: var(--signal);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: var(--signal);
+  --bs-btn-hover-color: var(--void);
+  --bs-btn-hover-bg: var(--signal);
+  --bs-btn-hover-border-color: var(--signal);
+  --bs-btn-active-color: var(--void);
+  --bs-btn-active-bg: var(--signal);
+  --bs-btn-active-border-color: var(--signal);
+}
+
+.btn-danger {
+  --bs-btn-color: var(--pulse);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: var(--pulse);
+  --bs-btn-hover-color: #12080a;
+  --bs-btn-hover-bg: var(--pulse);
+  --bs-btn-hover-border-color: var(--pulse);
+  --bs-btn-active-color: #12080a;
+  --bs-btn-active-bg: var(--pulse);
+  --bs-btn-active-border-color: var(--pulse);
+}
+
+/* ---------- Surfaces: cards, panels, lists, dropdowns, forms ---------- */
+
+.card {
+  --bs-card-bg: var(--steel);
+  --bs-card-border-color: var(--line);
+  --bs-card-cap-bg: var(--steel-2);
+}
+
 .card-hover {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, border-color 0.15s ease-in-out;
   position: relative;
   z-index: 1;
 }
 
 .card-hover:hover {
   transform: scale(1.05);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+  border-color: var(--ash);
   z-index: 10;
+}
+
+.list-group-item {
+  --bs-list-group-bg: var(--steel);
+  --bs-list-group-border-color: var(--line);
+  --bs-list-group-color: var(--bone);
+  --bs-list-group-action-hover-bg: var(--steel-2);
+  --bs-list-group-action-hover-color: var(--bone);
+  --bs-list-group-action-active-bg: var(--steel-2);
+  --bs-list-group-action-active-color: var(--bone);
+  --bs-list-group-active-bg: var(--steel-2);
+  --bs-list-group-active-border-color: var(--line);
+  --bs-list-group-active-color: var(--bone);
+}
+
+.list-group-item.active {
+  border-left: 3px solid var(--signal);
+}
+
+.dropdown-menu {
+  --bs-dropdown-bg: var(--steel);
+  --bs-dropdown-border-color: var(--line);
+  --bs-dropdown-link-hover-bg: var(--steel-2);
+  --bs-dropdown-link-hover-color: var(--bone);
+  --bs-dropdown-link-active-bg: var(--steel-2);
+  --bs-dropdown-link-active-color: var(--signal);
+  font: 500 0.78rem/1 var(--font-plex-mono), ui-monospace, monospace;
+  letter-spacing: 0.03em;
+}
+
+.form-control:focus {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 0.2rem rgba(79, 227, 193, 0.15);
+}
+
+.form-check-input {
+  background-color: var(--steel-2);
+  border-color: var(--line);
+}
+
+.form-check-input:checked {
+  background-color: var(--signal);
+  border-color: var(--signal);
+}
+
+.form-check-input:focus {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 0.2rem rgba(79, 227, 193, 0.2);
+}
+
+.form-switch .form-check-input {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%238494a0'/%3e%3c/svg%3e");
+}
+
+.form-switch .form-check-input:checked {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%230a0e11'/%3e%3c/svg%3e");
+}
+
+[data-bs-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.modal-content {
+  --bs-modal-bg: var(--steel);
+  --bs-modal-border-color: var(--line);
+  --bs-modal-header-border-color: var(--line);
+  --bs-modal-footer-border-color: var(--line);
+}
+
+.modal-title {
+  font-family: var(--font-chakra-petch), "Segoe UI", sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* One-off accent borders for modals that carry a specific meaning. */
+.modal-accent-pulse .modal-content {
+  border-top: 2px solid var(--pulse);
+}
+.modal-accent-pulse .modal-title {
+  color: var(--pulse);
+}
+.modal-accent-signal .modal-content {
+  border-top: 2px solid var(--signal);
+}
+.modal-accent-signal .modal-title {
+  color: var(--signal);
+}
+
+.toast {
+  --bs-toast-bg: var(--steel);
+  --bs-toast-border-color: var(--line);
+  --bs-toast-header-bg: var(--steel-2);
+  --bs-toast-header-color: var(--signal);
+  border-left: 3px solid var(--signal);
+  font-family: var(--font-plex-sans);
+}
+
+/* ---------- App-specific primitives ---------- */
+
+.panel {
+  background: var(--steel);
+  border: 1px solid var(--line);
+  padding: 1rem;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: var(--font-chakra-petch), "Segoe UI", sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-title .dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--signal);
+  display: inline-block;
+  margin-right: 0.6em;
+}
+
+.panel-title small {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-weight: 400;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--ash);
+}
+
+.section-label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 0.75rem;
+}
+
+.empty-note {
+  font-size: 0.85rem;
+  color: var(--ash);
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.app-footer {
+  background: var(--steel);
+  border-top: 1px solid var(--line);
+}
+
+.loading-screen {
+  background: var(--void);
+}
+
+.loading-status {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.spinner-signal {
+  color: var(--signal);
 }

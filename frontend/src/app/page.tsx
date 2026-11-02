@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import Header from '@/components/Header';
+import TitleBar from '@/components/TitleBar';
 import WeaponGrid from '@/features/gun-skins/WeaponGrid';
 import PresetList from '@/features/presets/PresetList';
 import AgentAssigner from '@/features/agents/AgentAssigner';
@@ -172,12 +172,12 @@ export default function Home() {
     if (isLoading || dataContextLoading) {
         return (
             <>
-                <Header />
-                <div className="d-flex flex-column justify-content-center align-items-center vh-100">
-                    <div className="spinner-border" role="status">
+                <TitleBar />
+                <div className="loading-screen d-flex flex-column justify-content-center align-items-center vh-100">
+                    <div className="spinner-border spinner-signal" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
-                    <p className="mt-3">{loadingMessage}</p>
+                    <p className="mt-3 loading-status">{loadingMessage}</p>
                 </div>
             </>
         );
@@ -185,7 +185,7 @@ export default function Home() {
 
     return (
         <>
-            <Header />
+            <TitleBar />
             <main className="container-fluid mt-4 pb-5 h-100">
                 <div className="row h-100">
                     <div className="col-md-9 mb-3 scrollable-col">
@@ -203,8 +203,10 @@ export default function Home() {
                                 loadoutName = loadoutName + ' - ' + parentPreset.name
                             }
                             return (
-                                <div className="p-3 border h-100 d-flex flex-column">
-                                    <h2>{loadoutName}</h2>
+                                <div className="panel h-100 d-flex flex-column">
+                                    <div className="panel-title">
+                                        <span><span className="dot" aria-hidden="true" />{loadoutName}</span>
+                                    </div>
                                     <div className="d-flex flex-grow-1" style={{ minHeight: 0 }}>
                                         <AgentAssigner
                                             agents={agents}
@@ -225,10 +227,10 @@ export default function Home() {
                     </div>
                     <div className="col-md-3 scrollable-col">
                         <SettingsCard autoSelectAgent={autoSelectAgent} onAutoSelectAgentChange={setAutoSelectAgent} isLoading={isLoading} />
-                        <div className="p-3 border mt-3">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h2 className="mb-0">Presets</h2>
-                                <button className="btn btn-primary" onClick={() => handleOpenPresetNameModal(NamingMode.New)}>+</button>
+                        <div className="panel mt-3">
+                            <div className="panel-title">
+                                <span>Presets</span>
+                                <button className="btn btn-primary btn-sm" onClick={() => handleOpenPresetNameModal(NamingMode.New)}>+ New</button>
                             </div>
                             <PresetList presets={presets} onPresetSelect={handlePresetSelect}
                                 selectedPreset={selectedPreset} defaultPreset={defaultPreset}

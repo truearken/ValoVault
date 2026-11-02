@@ -62,7 +62,15 @@ export default function WeaponCard({ weapon, onClick, onEditClick, onBuddyEditCl
     }
 
     return (
-        <div className="card h-100 card-hover" onClick={onClick} style={{ cursor: 'pointer', opacity: selectedItem ? 1 : 0.5 }} title={displayName}>
+        <div
+            className="card h-100 card-hover"
+            onClick={onClick}
+            style={{
+                cursor: 'pointer',
+                opacity: selectedItem ? 1 : 0.55,
+                borderColor: selectedItem ? 'var(--signal)' : undefined,
+            }}
+            title={displayName}>
             <div className="card-body d-flex flex-column justify-content-center align-items-center p-2 position-relative">
                 {weapon.category !== 'EEquippableCategory::Melee' && (
                     <button

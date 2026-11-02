@@ -16,7 +16,10 @@
         "width": 1664,
         "height": 936,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "decorations": false,
+        "minWidth": 900,
+        "minHeight": 600
       }
     ],
     "security": {

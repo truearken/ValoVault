@@ -41,7 +41,7 @@ export default function AgentSelectionModal({ show, onClose, agents, onAgentSele
     };
 
     return (
-        <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={handleBackdropClick}>
+        <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(10,14,17,0.75)', backdropFilter: 'blur(6px)' }} onClick={handleBackdropClick}>
             <div className="modal-dialog modal-dialog-centered modal-lg">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -53,7 +53,7 @@ export default function AgentSelectionModal({ show, onClose, agents, onAgentSele
                             <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
                                 {agents.map((agent) => (
                                     <div key={agent.uuid} className="col" onClick={() => handleAgentClick(agent.uuid)}>
-                                        <div className={`card card-hover h-100 ${selectedAgents.includes(agent.uuid) ? 'border-primary' : ''}`} style={{ cursor: 'pointer' }}>
+                                        <div className="card card-hover h-100" style={{ cursor: 'pointer', borderColor: selectedAgents.includes(agent.uuid) ? 'var(--signal)' : undefined }}>
                                             <div className="card-body d-flex flex-column justify-content-center align-items-center p-2">
                                                 <Image src={agent.displayIcon} alt={agent.displayName} className="img-fluid rounded-circle" width={80} height={80} style={{ objectFit: 'cover' }} unoptimized />
                                             </div>

@@ -72,10 +72,9 @@ export default function PresetList({ presets, selectedPreset, onPresetSelect, on
                     {defaultPreset.name}
                 </button>
             </div>
-            <hr />
-            <h5>Saved Presets</h5>
+            <p className="section-label mt-3">Saved Presets</p>
             {savedPresets.length === 0 ? (
-                <p>No presets saved yet.</p>
+                <p className="empty-note">No presets saved yet. Use <strong>+ New</strong> above to build one from your current loadout.</p>
             ) : (
                 <div className="list-group">
                     {topLevelPresets.map((preset) => (
@@ -108,7 +107,7 @@ export default function PresetList({ presets, selectedPreset, onPresetSelect, on
                                     </div>
                                     <button className="btn btn-success btn-sm" onClick={() => onPresetApply(preset)}>Apply</button>
                                     <Dropdown>
-                                        <Dropdown.Toggle />
+                                        <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="More actions" />
                                         <Dropdown.Menu>
                                             <Dropdown.Item href="#" onClick={() => onPresetRename(preset)}>Rename</Dropdown.Item>
                                             <Dropdown.Item href="#" onClick={() => onCopyPreset(preset)}>Copy</Dropdown.Item>
@@ -136,7 +135,7 @@ export default function PresetList({ presets, selectedPreset, onPresetSelect, on
                                                 </div>
                                                 <button className="btn btn-success btn-sm" onClick={() => onPresetApply(child)}>Apply</button>
                                                 <Dropdown>
-                                                    <Dropdown.Toggle />
+                                                    <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="More actions" />
                                                     <Dropdown.Menu>
                                                         <Dropdown.Item href="#" onClick={() => onPresetRename(child)}>Rename</Dropdown.Item>
                                                         <Dropdown.Item href="#" onClick={() => onPresetDelete(child.uuid)}>Delete</Dropdown.Item>

@@ -16,7 +16,7 @@ export default function UpdateModal({ show, onClose, onConfirm, currentVersion, 
     const changelogUrl = `https://github.com/truearken/valovault/releases/tag/v${newVersion}`;
 
     return (
-        <div className="modal" tabIndex={-1} style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal modal-accent-signal" tabIndex={-1} style={{ display: 'block', backgroundColor: 'rgba(10,14,17,0.75)', backdropFilter: 'blur(6px)' }}>
             <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -27,11 +27,11 @@ export default function UpdateModal({ show, onClose, onConfirm, currentVersion, 
                         <p className="mb-3">
                             A new version of ValoVault is available!
                         </p>
-                        <p className="mb-3">
-                            <strong>v{currentVersion}</strong> → <strong>v{newVersion}</strong>
+                        <p className="mb-3" style={{ fontFamily: 'var(--font-plex-mono)', color: 'var(--ash)' }}>
+                            v{currentVersion} <span style={{ color: 'var(--signal)' }}>→</span> v{newVersion}
                         </p>
                         <p className="mb-0">
-                            <a href={changelogUrl} target="_blank" rel="noopener noreferrer">
+                            <a href={changelogUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--signal)' }}>
                                 View changelog on GitHub
                             </a>
                         </p>

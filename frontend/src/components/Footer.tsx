@@ -12,7 +12,7 @@ type FooterProps = {
 
 export default function Footer({ onSaveAction, onCancelAction, onSaveAsNewAction, onApplyAction, onVariantAction, isDefaultPreset, isVariant }: FooterProps) {
   return (
-    <footer className="footer mt-auto py-4 fixed-bottom">
+    <footer className="app-footer mt-auto py-4 fixed-bottom">
       <div className="container text-center">
         {!isDefaultPreset && <button className="btn btn-primary me-2" onClick={onSaveAction}>
           Save
