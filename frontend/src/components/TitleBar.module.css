@@ -99,31 +99,6 @@
     align-items: stretch;
 }
 
-.themeToggle {
-    width: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    color: var(--ash);
-    cursor: pointer;
-    font-size: 0.9rem;
-    line-height: 1;
-    transition: color 0.15s ease, background 0.15s ease;
-}
-
-.themeToggle:hover {
-    color: var(--bone);
-    background: var(--steel-2);
-}
-
-.divider {
-    width: 1px;
-    margin: 9px 2px;
-    background: var(--line);
-}
-
 .winBtn {
     width: 46px;
     display: flex;

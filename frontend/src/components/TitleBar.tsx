@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "@/context/ThemeContext";
 import { useEffect, useState, useCallback } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -44,9 +43,6 @@ function CloseIcon() {
 }
 
 export default function TitleBar() {
-    const { theme, toggleTheme } = useTheme();
-    const isDarkMode = theme === 'dark';
-
     const [appVersion, setAppVersion] = useState('');
     const [isOutdated, setIsOutdated] = useState(false);
     const [newVersion, setNewVersion] = useState('');
@@ -156,14 +152,6 @@ export default function TitleBar() {
                 <div className={styles.spacer} data-tauri-drag-region />
 
                 <div className={styles.controls}>
-                    <button
-                        type="button"
-                        className={styles.themeToggle}
-                        onClick={toggleTheme}
-                        aria-label="Toggle theme">
-                        {isDarkMode ? "☀︎" : "☾"}
-                    </button>
-                    <span className={styles.divider} aria-hidden="true" />
                     <button type="button" className={styles.winBtn} onClick={handleMinimize} aria-label="Minimize">
                         <MinimizeIcon />
                     </button>

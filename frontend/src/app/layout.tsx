@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Chakra_Petch, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { DataProvider } from "@/context/DataContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -38,9 +37,7 @@ export default function RootLayout({
     <html lang="en" data-bs-theme="dark">
       <body className={`${chakraPetch.variable} ${plexMono.variable} ${plexSans.variable}`}>
         <ErrorBoundary>
-          <DataProvider>
-            <ThemeProvider>{children}</ThemeProvider>
-          </DataProvider>
+          <DataProvider>{children}</DataProvider>
         </ErrorBoundary>
       </body>
     </html>

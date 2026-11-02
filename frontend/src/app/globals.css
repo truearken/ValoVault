@@ -144,32 +144,6 @@ h1, h2, h3, h4, h5, h6 {
   --bs-secondary-rgb: 132, 148, 160;
 }
 
-[data-bs-theme="light"] {
-  --bs-body-bg: var(--bone);
-  --bs-body-color: var(--void);
-  --bs-emphasis-color: var(--void);
-  --bs-secondary-color: #5b6a74;
-  --bs-tertiary-color: #5b6a74;
-  --bs-border-color: #d7d1c4;
-  --bs-border-color-translucent: #d7d1c4;
-  --bs-tertiary-bg: #e8e3d7;
-  --bs-secondary-bg: #ddd7c9;
-  --bs-secondary-bg-subtle: #ddd7c9;
-  --bs-secondary-border-subtle: #d7d1c4;
-  --bs-secondary-text-emphasis: var(--void);
-  --bs-link-color: #0d7d67;
-  --bs-link-hover-color: var(--void);
-
-  --bs-primary: var(--pulse);
-  --bs-primary-rgb: 255, 70, 85;
-  --bs-danger: var(--pulse);
-  --bs-danger-rgb: 255, 70, 85;
-  --bs-success: #0d7d67;
-  --bs-success-rgb: 13, 125, 103;
-  --bs-info: #0d7d67;
-  --bs-info-rgb: 13, 125, 103;
-}
-
 /* ---------- Buttons: two accents, ghost for everything else ---------- */
 
 .btn {
