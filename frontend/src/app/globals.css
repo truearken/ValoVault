@@ -434,3 +434,73 @@ h1, h2, h3, h4, h5, h6 {
 .spinner-signal {
   color: var(--signal);
 }
+
+/* Weapon collection layout (grouped by category, like the in-game collection) */
+.app-layout {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.app-layout-main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.app-layout-side {
+  flex: 0 0 clamp(300px, 25%, 420px);
+  min-width: 0;
+}
+
+/* px values mirror LAYOUT in features/gun-skins/weaponCategories.ts */
+.weapon-columns {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.weapon-column {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weapon-category-title {
+  height: 36px;
+  line-height: 36px;
+  margin: 0 0 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 1.35rem;
+  color: var(--bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weapon-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weapon-card {
+  height: var(--weapon-card-h, 140px);
+}
+
+.weapon-card > .card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.weapon-card-img {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+}

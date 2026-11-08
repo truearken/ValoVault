@@ -63,7 +63,7 @@ export default function WeaponCard({ weapon, onClick, onEditClick, onBuddyEditCl
 
     return (
         <div
-            className="card h-100 card-hover"
+            className="card weapon-card card-hover"
             onClick={onClick}
             style={{
                 cursor: 'pointer',
@@ -94,7 +94,7 @@ export default function WeaponCard({ weapon, onClick, onEditClick, onBuddyEditCl
                         ⟲
                     </button>
                 }
-                <Image src={displayIcon} alt={displayName} className="card-img-top" width={100} height={100} style={{ objectFit: 'contain' }} unoptimized />
+                <Image src={displayIcon} alt={displayName} className="weapon-card-img" width={320} height={90} style={{ objectFit: 'contain' }} unoptimized />
             </div>
             <div className="card-footer d-flex justify-content-between align-items-center p-1" style={{ gap: '0.5rem' }}>
                 <small className="text-muted text-truncate" style={{ minWidth: 0 }}>{displayName}</small>

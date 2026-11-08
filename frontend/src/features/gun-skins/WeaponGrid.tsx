@@ -1,12 +1,28 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
 import { Weapon, LoadoutItemV1, Skin } from '@/lib/types';
 import WeaponCard from './WeaponCard';
 import SkinList from './SkinList';
 import LevelAndChromaSelector from './LevelAndChromaSelector';
 import GunBuddySelectionModal from './GunBuddySelectionModal';
+import { groupWeapons, computeLayout } from './weaponCategories';
+
+// Tracks the grid's own content box (not the window), so the side panels never get squeezed.
+function useElementSize(el: HTMLDivElement | null) {
+    const [size, setSize] = useState({ width: 0, height: 0 });
+    useEffect(() => {
+        if (!el) return;
+        const observer = new ResizeObserver(([entry]) => {
+            const { width, height } = entry.contentRect;
+            setSize(prev => (prev.width === width && prev.height === height ? prev : { width, height }));
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [el]);
+    return size;
+}
 
 type WeaponGridProps = {
     onSkinSelectAction: (weaponId: string, skinId: string, levelId: string, chromaId: string) => void;
@@ -24,6 +40,8 @@ export default function WeaponGrid({ onSkinSelectAction, onBuddySelectAction, on
     const [showLevelAndChromaModal, setShowLevelAndChromaModal] = useState(false);
     const [showBuddyModal, setShowBuddyModal] = useState(false);
     const [selectedWeaponForBuddy, setSelectedWeaponForBuddy] = useState<Weapon | null>(null);
+    const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
+    const gridSize = useElementSize(gridEl);
 
     const handleWeaponClick = (weapon: Weapon) => {
         setSelectedWeapon(weapon);
@@ -85,32 +103,48 @@ export default function WeaponGrid({ onSkinSelectAction, onBuddySelectAction, on
         setShowLevelAndChromaModal(false);
     };
 
-    const weaponCards = useMemo(() => {
-        return weapons.map((weapon) => (
-            <div key={weapon.uuid} className="col">
-                <WeaponCard
-                    weapon={weapon}
-                    ownedLevelIDs={ownedLevelIDs}
-                    ownedChromaIDs={ownedChromaIDs}
-                    onClick={() => handleWeaponClick(weapon)}
-                    onEditClick={() => handleEditSkinClick(weapon)}
-                    onBuddyEditClick={() => handleBuddyEditClick(weapon)}
-                    onHandleResetSkinClick={() => handleResetSkinClick(weapon)}
-                    selectedItem={currentLoadout[weapon.uuid]}
-                    parentItem={parent ? parent[weapon.uuid] : undefined}
-                />
-            </div>
-        ));
-    }, [weapons, ownedLevelIDs, ownedChromaIDs, currentLoadout, parent]);
+    const groups = useMemo(() => groupWeapons(weapons), [weapons]);
+    const { columns, cardHeight } = useMemo(
+        () => computeLayout(groups, gridSize.width, gridSize.height),
+        [groups, gridSize.width, gridSize.height],
+    );
+
+    const renderCard = (weapon: Weapon) => (
+        <WeaponCard
+            key={weapon.uuid}
+            weapon={weapon}
+            ownedLevelIDs={ownedLevelIDs}
+            ownedChromaIDs={ownedChromaIDs}
+            onClick={() => handleWeaponClick(weapon)}
+            onEditClick={() => handleEditSkinClick(weapon)}
+            onBuddyEditClick={() => handleBuddyEditClick(weapon)}
+            onHandleResetSkinClick={() => handleResetSkinClick(weapon)}
+            selectedItem={currentLoadout[weapon.uuid]}
+            parentItem={parent ? parent[weapon.uuid] : undefined}
+        />
+    );
 
     if (loading) {
         return <div>Loading game data...</div>;
     }
 
     return (
-        <div className="px-2">
-            <div className="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-                {!loading && weaponCards}
+        <div className="px-2 h-100" ref={setGridEl}>
+            <div
+                className="weapon-columns"
+                style={{ '--weapon-card-h': `${cardHeight}px`, visibility: gridSize.height ? 'visible' : 'hidden' } as React.CSSProperties}>
+                {columns.map((column, i) => (
+                    <div key={i} className="weapon-column">
+                        {column.map(group => (
+                            <section key={group.key} className="weapon-category">
+                                <h3 className="weapon-category-title">{group.label}</h3>
+                                <div className="weapon-category-list">
+                                    {group.weapons.map(renderCard)}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                ))}
             </div>
 
             {selectedWeapon && (

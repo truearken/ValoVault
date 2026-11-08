@@ -1,7 +1,7 @@
 tmux send-keys "nvim" C-m
 
 tmux new-window 
-tmux send-keys "opencode" C-m
+tmux send-keys "claude" C-m
 
 tmux new-window 
 tmux send-keys "cd frontend && cmd.exe /C npx tauri dev" C-m

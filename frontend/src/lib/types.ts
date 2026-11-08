@@ -32,6 +32,7 @@ export interface Weapon {
     displayName: string;
     displayIcon: string;
     category: string;
+    shopData?: { cost: number } | null;
     skins: Skin[];
 }
 

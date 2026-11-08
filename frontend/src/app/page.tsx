@@ -187,8 +187,8 @@ export default function Home() {
         <>
             <TitleBar />
             <main className="container-fluid mt-4 pb-5 h-100">
-                <div className="row h-100">
-                    <div className="col-md-9 mb-3 scrollable-col">
+                <div className="app-layout">
+                    <div className="app-layout-main mb-3 scrollable-col">
                         {(() => {
                             const activePreset = editingPreset || selectedPreset;
                             const isDisabled = !activePreset || activePreset.uuid === defaultPreset.uuid || !!activePreset.parentUuid;
@@ -214,7 +214,7 @@ export default function Home() {
                                             onAssignmentChange={handleAgentAssignment}
                                             disabled={isDisabled}
                                         />
-                                        <div className="flex-grow-1 py-2" style={{ overflowY: 'auto' }}>
+                                        <div className="flex-grow-1 py-2" style={{ overflowY: 'auto', minWidth: 0 }}>
                                             <WeaponGrid onSkinSelectAction={handleSkinSelect}
                                                 onBuddySelectAction={handleBuddySelect} currentLoadout={currentLoadout}
                                                 onSkinResetAction={handleSkinReset}
@@ -225,7 +225,7 @@ export default function Home() {
                             );
                         })()}
                     </div>
-                    <div className="col-md-3 scrollable-col">
+                    <div className="app-layout-side scrollable-col">
                         <SettingsCard autoSelectAgent={autoSelectAgent} onAutoSelectAgentChange={setAutoSelectAgent} isLoading={isLoading} />
                         <div className="panel mt-3">
                             <div className="panel-title">
