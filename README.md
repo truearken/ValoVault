@@ -4,7 +4,7 @@ ValoVault adds the most demanded feature to the game: **Agent Skin Presets**
 
 Create skin presets and assign agents, the skins will automatically apply if you select an agent ingame
 
-<img width="1662" height="882" alt="image" src="https://github.com/user-attachments/assets/7a36995b-fdf3-4e37-b773-934357302f9c" />
+<img width="1658" height="933" alt="image" src="https://github.com/user-attachments/assets/dece439e-0fa4-4d18-976a-553deb673c1b" />
 
 ## Supported game modes
 
