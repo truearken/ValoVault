@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Valorant Vault",
+        "title": "ValoVault",
         "width": 1664,
         "height": 936,
         "resizable": true,
