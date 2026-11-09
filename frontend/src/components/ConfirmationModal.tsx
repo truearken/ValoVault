@@ -1,14 +1,26 @@
 "use client";
 
+import { useEffect } from 'react';
+
 interface ConfirmationModalProps {
     show: boolean;
     onClose: () => void;
     onConfirm: () => void;
     title: string;
     message: string;
+    confirmLabel?: string;
 }
 
-export default function PresetNameModal({ show, onClose, onConfirm, title, message }: ConfirmationModalProps) {
+export default function ConfirmationModal({ show, onClose, onConfirm, title, message, confirmLabel = 'Delete' }: ConfirmationModalProps) {
+    useEffect(() => {
+        if (!show) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [show, onClose]);
+
     if (!show) {
         return null;
     }
@@ -25,12 +37,11 @@ export default function PresetNameModal({ show, onClose, onConfirm, title, messa
                         <p>{message}</p>
                     </div>
                     <div className="modal-footer">
-                        <button type="button" className="btn btn-danger" onClick={onConfirm}>Delete</button>
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                        <button type="button" className="btn btn-danger" onClick={onConfirm}>{confirmLabel}</button>
+                        <button type="button" className="btn btn-secondary" onClick={onClose} autoFocus>Cancel</button>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
-

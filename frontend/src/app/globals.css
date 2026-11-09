@@ -504,3 +504,7 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 0;
   width: 100%;
 }
+
+.panel-title .unsaved-indicator {
+  color: var(--pulse);
+}

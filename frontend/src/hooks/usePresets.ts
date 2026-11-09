@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Preset, LoadoutItemV1 } from '@/lib/types';
 import { getPlayerLoadout, savePresets } from '@/services/api';
 
@@ -39,15 +39,49 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
     }, [initialPlayerLoadout, initialPresets]);
 
 
+    // True when the user is in edit mode and the edited preset actually differs
+    // from what it started as (reverting every change counts as clean again).
+    const hasUnsavedChanges = useMemo(() => {
+        if (!isEditing || !editingPreset || !originalPreset) return false;
+        return JSON.stringify(editingPreset.loadout) !== JSON.stringify(originalPreset.loadout)
+            || JSON.stringify([...(editingPreset.agents || [])].sort()) !== JSON.stringify([...(originalPreset.agents || [])].sort());
+    }, [isEditing, editingPreset, originalPreset]);
+
+    // Keeps the selected/edited copies of a preset in sync when it is changed
+    // from elsewhere (e.g. renamed via the list while being edited).
+    const patchActivePreset = (uuid: string, patch: Partial<Preset>) => {
+        const apply = (p: Preset | null) => (p && p.uuid === uuid ? { ...p, ...patch } : p);
+        setSelectedPreset(apply);
+        setEditingPreset(apply);
+        setOriginalPreset(apply);
+    };
+
+    const refreshPlayerLoadout = async (showInView: boolean) => {
+        try {
+            const playerLoadout = await getPlayerLoadout();
+            defaultPreset.loadout = playerLoadout;
+            if (showInView) {
+                setCurrentLoadout(playerLoadout);
+            }
+        } catch (error) {
+            onPresetSelectError(error);
+        }
+    };
+
     const handleSave = async () => {
         if (!editingPreset || editingPreset.uuid === DEFAULT_PRESET_ID) return;
 
-        const updatedPresets = presets.map(p =>
-            p.uuid === editingPreset.uuid ? editingPreset : p
-        );
+        // Only take over loadout and agents so changes made to the preset while
+        // editing (rename, enable toggle) are not overwritten by a stale copy.
+        let saved: Preset = editingPreset;
+        const updatedPresets = presets.map(p => {
+            if (p.uuid !== editingPreset.uuid) return p;
+            saved = { ...p, loadout: editingPreset.loadout, agents: editingPreset.agents };
+            return saved;
+        });
         setPresets(updatedPresets);
         await savePresets(updatedPresets);
-        setSelectedPreset(editingPreset);
+        setSelectedPreset(saved);
         setIsEditing(false);
         setEditingPreset(null);
         setOriginalPreset(null);
@@ -63,14 +97,22 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
             agents: [],
         };
 
+        // The dropdown preset may be a stale copy if the preset was saved after the
+        // dropdown action was triggered, so prefer the current version.
+        const sourcePreset = dropdownPreset
+            ? presets.find(p => p.uuid === dropdownPreset.uuid) ?? dropdownPreset
+            : null;
+
         switch (namingMode) {
             case NamingMode.Rename: {
                 const updatedPresets = presets.map(p =>
                     p.uuid === dropdownPreset!.uuid ? { ...p, name } : p
                 );
                 setPresets(updatedPresets);
+                patchActivePreset(dropdownPreset!.uuid, { name });
                 await savePresets(updatedPresets);
                 setShowPresetNameModal(false);
+                setDropdownPreset(null);
                 return;
             }
             case NamingMode.New:
@@ -82,10 +124,14 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
                 newPreset.agents = editingPreset?.agents || originalPreset?.agents || [];
                 break;
             case NamingMode.Variant: {
-                newPreset.parentUuid = editingPreset?.uuid || originalPreset?.uuid || dropdownPreset?.uuid;
+                newPreset.parentUuid = editingPreset?.uuid || originalPreset?.uuid || sourcePreset?.uuid;
                 const edited: Record<string, LoadoutItemV1> = {};
-                for (const [gun, item] of Object.entries(editingPreset?.loadout || dropdownPreset!.loadout)) {
-                    const originalGun = originalPreset?.loadout[gun] || dropdownPreset!.loadout[gun];
+                for (const [gun, item] of Object.entries(editingPreset?.loadout || sourcePreset!.loadout)) {
+                    const originalGun = originalPreset?.loadout[gun] || sourcePreset!.loadout[gun];
+                    if (!originalGun) {
+                        edited[gun] = item;
+                        continue;
+                    }
                     const wasEdited = originalGun.chromaId != item.chromaId || originalGun.skinLevelId != item.skinLevelId;
                     if (wasEdited) {
                         edited[gun] = item;
@@ -95,7 +141,7 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
                 break;
             }
             case NamingMode.Copy: {
-                newPreset.loadout = { ...dropdownPreset!.loadout };
+                newPreset.loadout = { ...sourcePreset!.loadout };
                 break;
             }
         }
@@ -144,7 +190,12 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
                 p => p.uuid !== presetToDelete.uuid && p.parentUuid !== presetToDelete.uuid
             );
 
-            if (presetToDelete.uuid === selectedPreset?.uuid || presetToDelete.uuid === selectedPreset?.parentUuid) {
+            const activePreset = editingPreset || selectedPreset;
+            if (presetToDelete.uuid === activePreset?.uuid || presetToDelete.uuid === activePreset?.parentUuid) {
+                // The preset being viewed/edited is gone, so leave edit mode too.
+                setIsEditing(false);
+                setEditingPreset(null);
+                setOriginalPreset(null);
                 const parent = getParent(presetToDelete)
                 if (parent) {
                     setSelectedPreset(parent);
@@ -260,6 +311,7 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
             p.uuid === preset!.uuid ? { ...p, disabled: !checked } : p
         );
         setPresets(updatedPresets);
+        patchActivePreset(preset.uuid, { disabled: !checked });
         await savePresets(updatedPresets);
     }
 
@@ -271,6 +323,9 @@ export function usePresets(initialPresets: Preset[], initialPlayerLoadout: Recor
         presets,
         selectedPreset,
         isEditing,
+        hasUnsavedChanges,
+        presetToDelete,
+        refreshPlayerLoadout,
         editingPreset,
         originalPreset,
         showPresetNameModal,

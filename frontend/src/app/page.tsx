@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import TitleBar from '@/components/TitleBar';
 import WeaponGrid from '@/features/gun-skins/WeaponGrid';
 import PresetList from '@/features/presets/PresetList';
@@ -11,6 +12,7 @@ import ErrorModal from '@/components/ErrorModal';
 import Toast from '@/components/Toast';
 import SettingsCard from '@/components/SettingsCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import UnsavedChangesModal from '@/components/UnsavedChangesModal';
 import { getPlayerLoadout, getPresets } from '@/services/api';
 import { getSettings, saveSettings } from '@/services/settings';
 import { LocalClientError } from '@/lib/errors';
@@ -48,6 +50,9 @@ export default function Home() {
         presets,
         selectedPreset,
         isEditing,
+        hasUnsavedChanges,
+        presetToDelete,
+        refreshPlayerLoadout,
         editingPreset,
         originalPreset,
         showPresetNameModal,
@@ -118,6 +123,75 @@ export default function Home() {
         }
     }, [autoSelectAgent]);
 
+    // --- Unsaved changes guard -------------------------------------------------
+    // Actions that would leave the current edit go through guardNavigation. If
+    // there are unsaved changes, the action is parked until the user decides.
+    const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+    const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+    useEffect(() => {
+        hasUnsavedChangesRef.current = hasUnsavedChanges;
+    }, [hasUnsavedChanges]);
+
+    const canSaveEditing = !!editingPreset && editingPreset.uuid !== defaultPreset.uuid;
+
+    const guardNavigation = (action: () => void) => {
+        if (hasUnsavedChanges) {
+            setPendingAction(() => action);
+        } else {
+            action();
+        }
+    };
+
+    const handleUnsavedKeepEditing = useCallback(() => setPendingAction(null), []);
+
+    const handleUnsavedDiscard = () => {
+        const action = pendingAction;
+        setPendingAction(null);
+        handleCancel();
+        action?.();
+    };
+
+    const handleUnsavedSave = async () => {
+        const action = pendingAction;
+        setPendingAction(null);
+        await handleSave();
+        action?.();
+    };
+
+    // Intercept closing the window (title bar button, Alt+F4) while there are
+    // unsaved changes.
+    useEffect(() => {
+        const win = getCurrentWindow();
+        let unlisten: (() => void) | undefined;
+        let disposed = false;
+        win.onCloseRequested((event) => {
+            if (hasUnsavedChangesRef.current) {
+                event.preventDefault();
+                setPendingAction(() => () => { win.destroy(); });
+            }
+        }).then((fn) => {
+            if (disposed) fn(); else unlisten = fn;
+        });
+        return () => {
+            disposed = true;
+            unlisten?.();
+        };
+    }, []);
+
+    // Ctrl+S saves the preset being edited.
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                if (isEditing && canSaveEditing && !showPresetNameModal && !pendingAction) {
+                    handleSave();
+                }
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [isEditing, canSaveEditing, showPresetNameModal, pendingAction, handleSave]);
+
     const handleSkinSelect = (weaponId: string, skinId: string, levelId: string, chromaId: string) => {
         handleItemChange(weaponId, { skinId, skinLevelId: levelId, chromaId });
     };
@@ -134,21 +208,29 @@ export default function Home() {
         const presetToApply = editingPreset || selectedPreset;
         if (!presetToApply) return;
 
-        if (isEditing && editingPreset && editingPreset.uuid !== defaultPreset.uuid) {
+        const isEditingDefault = isEditing && presetToApply.uuid === defaultPreset.uuid;
+        if (isEditing && !isEditingDefault) {
+            // Saving also leaves edit mode and selects the saved preset.
             await handleSave();
         }
 
         const loadoutToApply = buildApplyLoadout(presetToApply)
-        await handleApplyLoadout(loadoutToApply, presetToApply.name);
+        const applied = await handleApplyLoadout(loadoutToApply, presetToApply.name);
+        if (!applied) return; // keep unsaved edits of the current loadout so the user can retry
 
-        if (isEditing) {
+        if (isEditingDefault) {
             handleCancel();
         }
+        await refreshPlayerLoadout(isEditingDefault || selectedPreset?.uuid === defaultPreset.uuid);
     };
 
-    const handlePresetApply = (preset: Preset) => {
+    const handlePresetApply = async (preset: Preset) => {
         const loadoutToApply = buildApplyLoadout(preset);
-        handleApplyLoadout(loadoutToApply, preset.name);
+        const applied = await handleApplyLoadout(loadoutToApply, preset.name);
+        if (applied) {
+            // Refresh the "Current Loadout" view, unless the user is editing something.
+            await refreshPlayerLoadout(!isEditing && selectedPreset?.uuid === defaultPreset.uuid);
+        }
     }
 
     const buildApplyLoadout = (preset: Preset) => {
@@ -206,6 +288,7 @@ export default function Home() {
                                 <div className="panel h-100 d-flex flex-column">
                                     <div className="panel-title">
                                         <span><span className="dot" aria-hidden="true" />{loadoutName}</span>
+                                        {hasUnsavedChanges && <small className="unsaved-indicator">Unsaved changes{canSaveEditing ? ' · Ctrl+S to save' : ''}</small>}
                                     </div>
                                     <div className="d-flex flex-grow-1" style={{ minHeight: 0 }}>
                                         <AgentAssigner
@@ -230,13 +313,13 @@ export default function Home() {
                         <div className="panel mt-3">
                             <div className="panel-title">
                                 <span>Presets</span>
-                                <button className="btn btn-primary btn-sm" onClick={() => handleOpenPresetNameModal(NamingMode.New)}>+ New</button>
+                                <button className="btn btn-primary btn-sm" onClick={() => guardNavigation(() => handleOpenPresetNameModal(NamingMode.New))}>+ New</button>
                             </div>
-                            <PresetList presets={presets} onPresetSelect={handlePresetSelect}
+                            <PresetList presets={presets} onPresetSelect={(preset) => guardNavigation(() => handlePresetSelect(preset))}
                                 selectedPreset={selectedPreset} defaultPreset={defaultPreset}
                                 onPresetApply={handlePresetApply} onPresetDelete={handlePresetDelete}
-                                onPresetRename={handleOpenRenameModal} onCreateVariant={handleDropdownVariant}
-                                onCopyPreset={handleCopyPreset} onTogglePreset={handleTogglePreset} agents={agents} />
+                                onPresetRename={handleOpenRenameModal} onCreateVariant={(preset) => guardNavigation(() => handleDropdownVariant(preset))}
+                                onCopyPreset={(preset) => guardNavigation(() => handleCopyPreset(preset))} onTogglePreset={handleTogglePreset} agents={agents} />
                         </div>
                     </div>
                 </div>
@@ -255,7 +338,20 @@ export default function Home() {
                 onClose={handleCloseConfirmationModal}
                 onConfirm={handleConfirmDelete}
                 title="Delete Preset"
-                message="Are you sure you want to delete this preset?"
+                message={(() => {
+                    const name = presetToDelete?.name ? `"${presetToDelete.name}"` : 'this preset';
+                    const variantCount = presetToDelete ? presets.filter(p => p.parentUuid === presetToDelete.uuid).length : 0;
+                    const variantNote = variantCount > 0 ? ` Its ${variantCount} variant${variantCount > 1 ? 's' : ''} will be deleted as well.` : '';
+                    return `Are you sure you want to delete ${name}?${variantNote}`;
+                })()}
+            />
+            <UnsavedChangesModal
+                show={!!pendingAction}
+                presetName={editingPreset?.name}
+                canSave={canSaveEditing}
+                onSave={handleUnsavedSave}
+                onDiscard={handleUnsavedDiscard}
+                onKeepEditing={handleUnsavedKeepEditing}
             />
         </>
     );
